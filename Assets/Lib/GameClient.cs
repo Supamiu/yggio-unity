@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace YggioUnity
@@ -11,7 +10,7 @@ namespace YggioUnity
     public class GameClient
     {
         private double version = 1.0;
-        public Queue<Task> updateQueue = new Queue<Task>();
+        public Queue<Action> updateQueue = new Queue<Action>();
         public BinaryReader NetworkIn;
         public BinaryWriter NetworkOut;
         private NetworkStream networkStream;
@@ -31,6 +30,12 @@ namespace YggioUnity
         public int UdpPort { get; set; }
 
         public bool isRunning { get; set; }
+
+        public double Version
+        {
+            get { return version; }
+            set { version = value; }
+        }
 
         public GameClient(string host)
         {
@@ -68,7 +73,7 @@ namespace YggioUnity
             }
         }
 
-        public void Prepare(Task task)
+        public void Prepare(Action task)
         {
             updateQueue.Enqueue(task);
         }
@@ -77,7 +82,7 @@ namespace YggioUnity
         {
             if (updateQueue.Count <= 0)
                 return;
-            updateQueue.Dequeue().Start();
+            updateQueue.Dequeue()();
         }
 
         private void NetworkLoop()
